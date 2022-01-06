@@ -154,6 +154,7 @@ async def set_var(client, message):
     
 @app.on_message(filters.command("usage") & filters.user(SUDOERS))
 async def usage_dynos(client, message):
+    ### Credits CatUserbot
     if await is_heroku():
         if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to update your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>")
@@ -204,16 +205,15 @@ async def usage_dynos(client, message):
     AppHours = math.floor(AppQuotaUsed / 60)
     AppMinutes = math.floor(AppQuotaUsed % 60)
     await asyncio.sleep(1.5)
-    return await dyno.edit(
-        "**Dyno Usage**:\n\n"
-        f" -> `Dyno usage for`  **{HEROKU_APP_NAME}**:\n"
-        f"     •  `{AppHours}`**h**  `{AppMinutes}`**m**  "
-        f"**|**  [`{AppPercentage}`**%**]"
-        "\n\n"
-        " -> `Dyno hours quota remaining this month`:\n"
-        f"     •  `{hours}`**h**  `{minutes}`**m**  "
-        f"**|**  [`{percentage}`**%**]"
-    )
+    text = f"""
+**DYNO USAGE**
+
+<u>Usage:</u>
+Total Used: `{AppHours}`**h**  `{AppMinutes}`**m**  [`{AppPercentage}``**%**]
+
+<u>Remaining Quota:</u>
+Total Left: `{hours}`**h**  `{minutes}`**m**  [`{percentage}`**%**]"""
+    return await dyno.edit(text)
 
 
 @app.on_message(filters.command("update") & filters.user(SUDOERS))
