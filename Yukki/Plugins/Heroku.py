@@ -181,7 +181,7 @@ async def usage_dynos(client, message):
         "Accept": "application/vnd.heroku+json; version=3.account-quotas",
     }
     path = "/accounts/" + account_id + "/actions/get-quota"
-    r = requests.get(heroku_api + path, headers=headers)
+    r = requests.get("https://api.heroku.com" + path, headers=headers)
     if r.status_code != 200:
         return await dyno.edit("Unable to fetch.")
     result = r.json()
