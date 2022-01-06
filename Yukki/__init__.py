@@ -233,6 +233,11 @@ async def initiate_bot():
                     console.print("\n├ [red] Error! HEROKU_APP_NAME doesnt exist...") 
                     return
             console.print("\n└ [red]Heroku App Setup Completed...\n")     
+        if os.path.exists(".git"):
+            print("chscha")
+            pass
+        else:
+            print("haan vai")
         try:
             repo = Repo()
         except GitCommandError:
