@@ -61,7 +61,7 @@ async def update_(client, message):
     if len(data) > 1024:
         link = await paste_queue(data)
         url = link + "/index.txt"
-        return await message.reply_text(f"Here is the Log of Your App[{HEROKU_APP_NAME}]\n\nClick Here to checkout Logs")
+        return await message.reply_text(f"Here is the Log of Your App[{HEROKU_APP_NAME}]\n\n[Click Here to checkout Logs]({url})")
     else:
         await message.reply_text(data)
         
