@@ -114,6 +114,16 @@
       "description": "The user id(s) of user(s) whom you would like to add as a SUDO. Multiple values shall be seperated with a space.",
       "value": "",
       "required": true
+    },
+    "UPSTREAM_REPO": {
+      "description": "If deploying a Forked Repo, Please put your Forked Repo Link",
+      "value": "https://github.com/Sorrybabe/videotest",
+      "required": true
+    },
+    "UPSTREAM_BRANCH": {
+      "description": "Repo's Branch Name",
+      "value": "master",
+      "required": true
     }
   },
   "PING_IMG": {
