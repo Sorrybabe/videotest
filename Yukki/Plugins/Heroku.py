@@ -58,7 +58,7 @@ async def update_(client, message):
     except BaseException:
         return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")
     data = app.get_log()
-    if if len(data) > 1024:
+    if len(data) > 1024:
         link = await paste_queue(data)
         url = link + "/index.txt"
         return await message.reply_text(f"Here is the Log of Your App[{HEROKU_APP_NAME}]\n\nClick Here to checkout Logs")
