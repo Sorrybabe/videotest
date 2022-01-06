@@ -234,36 +234,34 @@ async def initiate_bot():
                     return
             console.print("\n└ [red]Heroku App Setup Completed...\n")     
         if os.path.exists(".git"):
-            print("chscha")
             pass
         else:
-            print("haan vai")
-        try:
-            repo = Repo()
-        except GitCommandError:
-            console.print("┌ [red] Checking Git Client!")
-            console.print("└ [red]Git Command Error\n")
-            return
-        except InvalidGitRepositoryError:
-            console.print("┌ [red] Checking Git Client!")
-            repo = Repo.init()
-            if "origin" in repo.remotes:
-                origin = repo.remote("origin")
-            else:
-                origin = repo.create_remote("origin", UPSTREAM_REPO)
-            origin.fetch()
-            repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
-            repo.heads.master.set_tracking_branch(origin.refs.master)
-            repo.heads.master.checkout(True)
-            active_branch = repo.active_branch.name
-            if active_branch != UPSTREAM_BRANCH:
-                console.print("└ [red] UPSTREAM_BRANCH is not defined wrong. Correct the Branch.\n")
-                return
             try:
-               repo.create_remote("origin", UPSTREAM_REPO)
-            except BaseException:
-               pass
-            console.print("└ [red]Git Client Setup Completed\n")
+                repo = Repo()
+            except GitCommandError:
+                console.print("┌ [red]Checking Git Client!")
+                console.print("└ [red]Git Command Error\n")
+                return
+            except InvalidGitRepositoryError:
+                console.print("┌ [red] Checking Git Client!")
+                repo = Repo.init()
+                if "origin" in repo.remotes:
+                    origin = repo.remote("origin")
+                else:
+                    origin = repo.create_remote("origin", UPSTREAM_REPO)
+                origin.fetch()
+                repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
+                repo.heads.master.set_tracking_branch(origin.refs.master)
+                repo.heads.master.checkout(True)
+                active_branch = repo.active_branch.name
+                if active_branch != UPSTREAM_BRANCH:
+                    console.print("└ [red]UPSTREAM_BRANCH is not defined wrong. Correct the Branch.\n")
+                    return
+                try:
+                   repo.create_remote("origin", UPSTREAM_REPO)
+                except BaseException:
+                   pass
+                console.print("└ [red]Git Client Setup Completed\n")
             
 
 
