@@ -2,6 +2,8 @@ import os
 
 import random
 import asyncio
+import urllib3
+import heroku3
 
 from git import Repo
 from datetime import datetime
@@ -14,6 +16,9 @@ from Yukki import app, SUDOERS, LOG_GROUP_ID
 from Yukki.Utilities.heroku import is_heroku, user_input
 
 from pyrogram.types import Message
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 XCB = [
     "/",
@@ -34,6 +39,28 @@ XCB = [
     "HEAD",
     "main"
 ]
+
+@app.on_message(filters.command("get_log") & filters.user(SUDOERS))
+async def update_(client, message):
+    if await is_heroku():
+        if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to update your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>")
+            return
+        elif HEROKU_API_KEY == "" or HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
+            return
+    else:
+        await message.reply_text("Only for Heroku Apps")
+    try:
+        Heroku = heroku3.from_key(HEROKU_API_KEY)
+        app = Heroku.app(HEROKU_APP_NAME)
+    except BaseException:
+        return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")
+    data = app.get_log()
+    await message.reply_text(data)
+        
+    
+    
 
 
 @app.on_message(filters.command("update") & filters.user(SUDOERS))
