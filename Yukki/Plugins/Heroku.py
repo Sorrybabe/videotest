@@ -85,12 +85,12 @@ async def varget_(client, message):
     heroku_config = happ.confg()
     check_var = message.text.split(None, 2)[1]
     if check_var in heroku_config:
-        return await message.reply_text(f"**Heroku Config:**\n\n**{check_var}:** <code>{heroku_config["check_var]}</code>")
+        return await message.reply_text(f"**Heroku Config:**\n\n**{check_var}:** <code>{heroku_config[check_var]}</code>")
     else:
         return await message.reply_text(f"No such Var Exists")                                
                                         
     
-    
+
     
 
 
