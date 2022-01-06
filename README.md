@@ -18,7 +18,7 @@
     Ready to use method
 </h3>
 
-CHACHA
+CHACHA KISKI
 
 <p align="center">
     A Support Group and ready-to-use running instance of this bot can be found on Telegram <br>
