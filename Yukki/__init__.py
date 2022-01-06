@@ -12,7 +12,7 @@ from rich.table import Table
 
 from config import ASSISTANT_PREFIX, DURATION_LIMIT_MIN, LOG_GROUP_ID, UPSTREAM_REPO, UPSTREAM_BRANCH
 from config import MONGO_DB_URI as mango
-from config import MUSIC_BOT_NAME, OWNER_ID, SUDO_USERS, get_queue, HEROKU_API_KEY
+from config import MUSIC_BOT_NAME, OWNER_ID, SUDO_USERS, get_queue, HEROKU_API_KEY, HEROKU_APP_NAME
 from config import STRING1, STRING2, STRING3, STRING4, STRING5, LOG_SESSION
 from Yukki.Core.Clients.cli import (ASS_CLI_1, ASS_CLI_2, ASS_CLI_3,
                                     ASS_CLI_4, ASS_CLI_5, LOG_CLIENT, app)
