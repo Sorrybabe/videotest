@@ -143,9 +143,9 @@ async def set_var(client, message):
         return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")  
     heroku_config = happ.config()
     if to_set in heroku_config:
-        await message.reply_text(f"**Heroku Var Updation:**\n\n{check_var} has been updated successfully.")
+        await message.reply_text(f"**Heroku Var Updation:**\n\n{check_var} has been updated successfully. Bot will Restart Now.")
     else:
-        await message.reply_text(f"Added New Var with name {to_set}")   
+        await message.reply_text(f"Added New Var with name {to_set}. Bot will Restart Now.")   
     heroku_config[to_set] = value
 
 @app.on_message(filters.command("update") & filters.user(SUDOERS))
