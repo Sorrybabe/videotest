@@ -12,20 +12,17 @@ from rich.table import Table
 
 from config import ASSISTANT_PREFIX, DURATION_LIMIT_MIN, LOG_GROUP_ID, UPSTREAM_REPO, UPSTREAM_BRANCH
 from config import MONGO_DB_URI as mango
-from config import MUSIC_BOT_NAME, OWNER_ID, SUDO_USERS, get_queue, HEROKU_API_KEY, HEROKU_APP_NAME
+from config import MUSIC_BOT_NAME, OWNER_ID, SUDO_USERS, get_queue
 from config import STRING1, STRING2, STRING3, STRING4, STRING5, LOG_SESSION
 from Yukki.Core.Clients.cli import (ASS_CLI_1, ASS_CLI_2, ASS_CLI_3,
                                     ASS_CLI_4, ASS_CLI_5, LOG_CLIENT, app)
 from Yukki.Utilities.changers import time_to_seconds
-from Yukki.Utilities.heroku import is_heroku
 from git.exc import GitCommandError, InvalidGitRepositoryError
 loop = asyncio.get_event_loop()
 console = Console()
 
 
 ### Heroku Shit
-Heroku_cli = None
-Heroku_app = None
 UPSTREAM_BRANCH = UPSTREAM_BRANCH
 UPSTREAM_REPO = UPSTREAM_REPO
 
@@ -219,20 +216,7 @@ async def initiate_bot():
                     upsert=True,
                 )
         SUDOERS = (SUDOERS + sudoers + OWNER_ID) if sudoers else SUDOERS
-        console.print("└ [green]Loaded Sudo Users Successfully!\n")
-        if await is_heroku():
-            console.print("\n┌ [red]Heroku App Detected...")
-            if HEROKU_API_KEY != "" :
-                Heroku_cli = heroku3.from_key(HEROKU_API_KEY)
-                console.print("\n├ [green]Connected to Heroku Client...")                
-            if HEROKU_APP_NAME == "":
-                try:
-                    Heroku_app = Heroku_cli.app(HEROKU_APP_NAME)
-                    console.print("\n├ [green]Connected to Heroku App...") 
-                except:
-                    console.print("\n├ [red] Error! HEROKU_APP_NAME doesnt exist...") 
-                    return
-            console.print("\n└ [red]Heroku App Setup Completed...\n")     
+        console.print("└ [green]Loaded Sudo Users Successfully!\n")   
         if os.path.exists(".git"):
             pass
         else:
