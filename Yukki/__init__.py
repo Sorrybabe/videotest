@@ -232,15 +232,15 @@ async def initiate_bot():
                 except:
                     console.print("\n├ [red] Error! HEROKU_APP_NAME doesnt exist...") 
                     return
-            console.print("\n└ [red]Heroku App Setup Completed...")     
+            console.print("\n└ [red]Heroku App Setup Completed...\n")     
         try:
             repo = Repo()
         except GitCommandError:
-            console.print("┌ [red] Checking Git Client!\n")
+            console.print("┌ [red] Checking Git Client!")
             console.print("└ [red]Git Command Error\n")
             return
         except InvalidGitRepositoryError:
-            console.print("┌ [red] Checking Git Client!\n")
+            console.print("┌ [red] Checking Git Client!")
             repo = Repo.init()
             if "notreallyshikhar_tmp" in repo.remotes:
                 origin = repo.remote("notreallyshikhar_tmp")
