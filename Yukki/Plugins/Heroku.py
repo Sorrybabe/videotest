@@ -209,7 +209,7 @@ async def usage_dynos(client, message):
 **DYNO USAGE**
 
 <u>Usage:</u>
-Total Used: `{AppHours}`**h**  `{AppMinutes}`**m**  [`{AppPercentage}``**%**]
+Total Used: `{AppHours}`**h**  `{AppMinutes}`**m**  [`{AppPercentage}`**%**]
 
 <u>Remaining Quota:</u>
 Total Left: `{hours}`**h**  `{minutes}`**m**  [`{percentage}`**%**]"""
