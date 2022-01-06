@@ -16,7 +16,7 @@ from pyrogram import Client, filters
 
 from config import HEROKU_API_KEY, HEROKU_APP_NAME
 from Yukki import app, SUDOERS, LOG_GROUP_ID
-from Yukki.Utilities.heroku import is_heroku, user_input, headers
+from Yukki.Utilities.heroku import is_heroku, user_input
 from Yukki.Utilities.paste import isPreviewUp, paste_queue
 
 from pyrogram.types import Message
@@ -170,6 +170,16 @@ async def usage_dynos(client, message):
         return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")
     dyno = await message.reply_text("Checking Heroku Usage. Please Wait")
     account_id = Heroku.account().id
+    useragent = (
+        "Mozilla/5.0 (Linux; Android 10; SM-G975F) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/80.0.3987.149 Mobile Safari/537.36"
+    )
+    headers = {
+        "User-Agent": useragent,
+        "Authorization": f"Bearer {HEROKU_API_KEY}",
+        "Accept": "application/vnd.heroku+json; version=3.account-quotas",
+    }
     path = "/accounts/" + account_id + "/actions/get-quota"
     r = requests.get(heroku_api + path, headers=headers)
     if r.status_code != 200:
