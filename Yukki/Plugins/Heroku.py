@@ -90,7 +90,7 @@ async def varget_(client, message):
     if check_var in heroku_config:
         return await message.reply_text(f"**Heroku Config:**\n\n**{check_var}:** <code>{heroku_config[check_var]}</code>")
     else:
-        return await message.reply_text(f"No such Var Exists")                                
+        return await message.reply_text(f"No such Var")                                
                                         
     
 @app.on_message(filters.command("del_var") & filters.user(SUDOERS))
@@ -118,9 +118,35 @@ async def vardel_(client, message):
         await message.reply_text(f"**Heroku Var Deletion:**\n\n{check_var} has been deleted successfully.")
         del heroku_var[variable]
     else:
-        return await message.reply_text(f"No such Var Exists")    
+        return await message.reply_text(f"No such Var")    
     
-
+@app.on_message(filters.command("set_var") & filters.user(SUDOERS))
+async def set_var(client, message):
+    if await is_heroku():
+        if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to update your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>")
+            return
+        elif HEROKU_API_KEY == "" or HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
+            return
+    else:
+        await message.reply_text("Only for Heroku Apps")
+    usage = "**Usage:**\n/set_var [Var Name] [Var Value]"
+    if len(message.command) < 3:
+        return await message.reply_text(usage)
+    to_set = message.text.split(None, 2)[1].strip()
+    value = message.text.split(None, 2)[2].strip()
+    try:
+        Heroku = heroku3.from_key(HEROKU_API_KEY)
+        happ = Heroku.app(HEROKU_APP_NAME)
+    except BaseException:
+        return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")  
+    heroku_config = happ.config()
+    if to_set in heroku_config:
+        await message.reply_text(f"**Heroku Var Updation:**\n\n{check_var} has been updated successfully.")
+    else:
+        return await message.reply_text(f"Added New Var with name {to_set}")   
+    heroku_config[to_set] = value
 
 @app.on_message(filters.command("update") & filters.user(SUDOERS))
 async def update_(client, message):
