@@ -4,24 +4,30 @@ import time
 import heroku3
 from os import listdir, mkdir
 
+from git import Repo
 from aiohttp import ClientSession
 from motor.motor_asyncio import AsyncIOMotorClient as Bot
 from rich.console import Console
 from rich.table import Table
 
-from config import ASSISTANT_PREFIX, DURATION_LIMIT_MIN, LOG_GROUP_ID
+from config import ASSISTANT_PREFIX, DURATION_LIMIT_MIN, LOG_GROUP_ID, UPSTREAM_REPO, UPSTREAM_BRANCH
 from config import MONGO_DB_URI as mango
 from config import MUSIC_BOT_NAME, OWNER_ID, SUDO_USERS, get_queue, HEROKU_API_KEY
 from config import STRING1, STRING2, STRING3, STRING4, STRING5, LOG_SESSION
 from Yukki.Core.Clients.cli import (ASS_CLI_1, ASS_CLI_2, ASS_CLI_3,
                                     ASS_CLI_4, ASS_CLI_5, LOG_CLIENT, app)
 from Yukki.Utilities.changers import time_to_seconds
-
+from Yukki.Utilities.heroku import is_heroku
+from git.exc import GitCommandError, InvalidGitRepositoryError
 loop = asyncio.get_event_loop()
 console = Console()
 
-heroku_cli = heroku3.from_key(HEROKU_API_KEY)
 
+### Heroku Shit
+Heroku_cli = None
+Heroku_app = None
+UPSTREAM_BRANCH = UPSTREAM_BRANCH
+UPSTREAM_REPO = UPSTREAM_REPO
 
 ### Modules
 MOD_LOAD = []
@@ -89,6 +95,7 @@ async def initiate_bot():
     global ASSID3, ASSNAME3, ASSMENTION3, ASSUSERNAME3
     global ASSID4, ASSNAME4, ASSMENTION4, ASSUSERNAME4
     global ASSID5, ASSNAME5, ASSMENTION5, ASSUSERNAME5
+    global Heroku_cli, Heroku_app
     os.system("clear")
     header = Table(show_header=True, header_style="bold yellow")
     header.add_column(
@@ -213,6 +220,50 @@ async def initiate_bot():
                 )
         SUDOERS = (SUDOERS + sudoers + OWNER_ID) if sudoers else SUDOERS
         console.print("└ [green]Loaded Sudo Users Successfully!\n")
+        if await is_heroku():
+            console.print("\n┌ [red]Heroku App Detected...")
+            if HEROKU_API_KEY != "" :
+                Heroku_cli = heroku3.from_key(HEROKU_API_KEY)
+                console.print("\n├ [green]Connected to Heroku Client...")                
+            if HEROKU_APP_NAME == "":
+                try:
+                    Heroku_app = Heroku_cli.app(HEROKU_APP_NAME)
+                    console.print("\n├ [green]Connected to Heroku App...") 
+                except:
+                    console.print("\n├ [red] Error! HEROKU_APP_NAME doesnt exist...") 
+                    return
+            console.print("\n└ [red]Heroku App Setup Completed...")     
+        try:
+            repo = Repo()
+        except GitCommandError:
+            console.print("┌ [red] Checking Git Client!\n")
+            console.print("└ [red]Git Command Error\n")
+            return
+        except InvalidGitRepositoryError:
+            console.print("┌ [red] Checking Git Client!\n")
+            repo = Repo.init()
+            if "notreallyshikhar_tmp" in repo.remotes:
+                origin = repo.remote("notreallyshikhar_tmp")
+            else:
+                origin = repo.create_remote("notreallyshikhar_tmp", UPSTREAM_REPO)
+            origin.fetch()
+            repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
+            repo.heads.master.set_tracking_branch(origin.refs.master)
+            repo.heads.master.checkout(True)
+            active_branch = repo.active_branch.name
+            if active_branch != UPSTREAM_BRANCH:
+                console.print("└ [red] UPSTREAM_BRANCH is not defined wrong. Correct the Branch.\n")
+                return
+            try:
+               repo.create_remote("notreallyshikhar_tmp", UPSTREAM_REPO)
+            except BaseException:
+               pass
+            console.print("└ [red]Git Client Setup Completed\n")
+            
+
+
+
+
 
 loop.run_until_complete(initiate_bot())
 
