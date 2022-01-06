@@ -116,7 +116,7 @@ async def vardel_(client, message):
     heroku_config = happ.config()
     if check_var in heroku_config:
         await message.reply_text(f"**Heroku Var Deletion:**\n\n{check_var} has been deleted successfully.")
-        del heroku_var[variable]
+        del heroku_config[check_var]
     else:
         return await message.reply_text(f"No such Var")    
     
