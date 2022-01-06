@@ -14,6 +14,7 @@ from pyrogram import Client, filters
 from config import HEROKU_API_KEY, HEROKU_APP_NAME
 from Yukki import app, SUDOERS, LOG_GROUP_ID
 from Yukki.Utilities.heroku import is_heroku, user_input
+from Yukki.Utilities.paste import isPreviewUp, paste_queue
 
 from pyrogram.types import Message
 
@@ -57,7 +58,13 @@ async def update_(client, message):
     except BaseException:
         return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")
     data = app.get_log()
-    await message.reply_text(data)
+    if if len(data) > 1024:
+        link = await paste_queue(data)
+        url = link + "/index.txt"
+        return await message.reply_text(f"Here is the Log of Your App[{HEROKU_APP_NAME}]\n\nClick Here to checkout Logs")
+    else:
+        await message.reply_text(data)
+        
         
     
     
