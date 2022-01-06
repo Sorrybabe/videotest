@@ -77,20 +77,48 @@ async def varget_(client, message):
             return
     else:
         await message.reply_text("Only for Heroku Apps")
+    usage = "**Usage:**\n/get_var [Var Name]"
+    if len(message.command) != 2:
+        return await message.reply_text(usage)
+    check_var = message.text.split(None, 2)[1]
     try:
         Heroku = heroku3.from_key(HEROKU_API_KEY)
         happ = Heroku.app(HEROKU_APP_NAME)
     except BaseException:
         return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")  
-    heroku_config = happ.confg()
-    check_var = message.text.split(None, 2)[1]
+    heroku_config = happ.config()
     if check_var in heroku_config:
         return await message.reply_text(f"**Heroku Config:**\n\n**{check_var}:** <code>{heroku_config[check_var]}</code>")
     else:
         return await message.reply_text(f"No such Var Exists")                                
                                         
     
-
+@app.on_message(filters.command("del_var") & filters.user(SUDOERS))
+async def vardel_(client, message):
+    if await is_heroku():
+        if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to update your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>")
+            return
+        elif HEROKU_API_KEY == "" or HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
+            return
+    else:
+        await message.reply_text("Only for Heroku Apps")
+    usage = "**Usage:**\n/del_var [Var Name]"
+    if len(message.command) != 2:
+        return await message.reply_text(usage)
+    check_var = message.text.split(None, 2)[1]
+    try:
+        Heroku = heroku3.from_key(HEROKU_API_KEY)
+        happ = Heroku.app(HEROKU_APP_NAME)
+    except BaseException:
+        return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")  
+    heroku_config = happ.config()
+    if check_var in heroku_config:
+        await message.reply_text(f"**Heroku Var Deletion:**\n\n{check_var} has been deleted successfully.")
+        del heroku_var[variable]
+    else:
+        return await message.reply_text(f"No such Var Exists")    
     
 
 
