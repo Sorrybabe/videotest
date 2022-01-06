@@ -4,6 +4,9 @@ import random
 import asyncio
 import urllib3
 import heroku3
+import math
+import requests
+
 
 from git import Repo
 from datetime import datetime
@@ -13,7 +16,7 @@ from pyrogram import Client, filters
 
 from config import HEROKU_API_KEY, HEROKU_APP_NAME
 from Yukki import app, SUDOERS, LOG_GROUP_ID
-from Yukki.Utilities.heroku import is_heroku, user_input
+from Yukki.Utilities.heroku import is_heroku, user_input, headers
 from Yukki.Utilities.paste import isPreviewUp, paste_queue
 
 from pyrogram.types import Message
@@ -147,6 +150,61 @@ async def set_var(client, message):
     else:
         await message.reply_text(f"Added New Var with name {to_set}. Bot will Restart Now.")   
     heroku_config[to_set] = value
+
+    
+@app.on_message(filters.command("usage") & filters.user(SUDOERS))
+async def usage_dynos(client, message):
+    if await is_heroku():
+        if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to update your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>")
+            return
+        elif HEROKU_API_KEY == "" or HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
+            return
+    else:
+        await message.reply_text("Only for Heroku Apps")
+    try:
+        Heroku = heroku3.from_key(HEROKU_API_KEY)
+        happ = Heroku.app(HEROKU_APP_NAME)
+    except BaseException:
+        return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")
+    dyno = await message.reply_text("Checking Heroku Usage. Please Wait")
+    account_id = Heroku.account().id
+    path = "/accounts/" + account_id + "/actions/get-quota"
+    r = requests.get(heroku_api + path, headers=headers)
+    if r.status_code != 200:
+        return await dyno.edit("Unable to fetch.")
+    result = r.json()
+    quota = result["account_quota"]
+    quota_used = result["quota_used"]
+    remaining_quota = quota - quota_used
+    percentage = math.floor(remaining_quota / quota * 100)
+    minutes_remaining = remaining_quota / 60
+    hours = math.floor(minutes_remaining / 60)
+    minutes = math.floor(minutes_remaining % 60)
+    App = result["apps"]
+    try:
+        App[0]["quota_used"]
+    except IndexError:
+        AppQuotaUsed = 0
+        AppPercentage = 0
+    else:
+        AppQuotaUsed = App[0]["quota_used"] / 60
+        AppPercentage = math.floor(App[0]["quota_used"] * 100 / quota)
+    AppHours = math.floor(AppQuotaUsed / 60)
+    AppMinutes = math.floor(AppQuotaUsed % 60)
+    await asyncio.sleep(1.5)
+    return await dyno.edit(
+        "**Dyno Usage**:\n\n"
+        f" -> `Dyno usage for`  **{Config.HEROKU_APP_NAME}**:\n"
+        f"     •  `{AppHours}`**h**  `{AppMinutes}`**m**  "
+        f"**|**  [`{AppPercentage}`**%**]"
+        "\n\n"
+        " -> `Dyno hours quota remaining this month`:\n"
+        f"     •  `{hours}`**h**  `{minutes}`**m**  "
+        f"**|**  [`{percentage}`**%**]"
+    )
+
 
 @app.on_message(filters.command("update") & filters.user(SUDOERS))
 async def update_(client, message):
