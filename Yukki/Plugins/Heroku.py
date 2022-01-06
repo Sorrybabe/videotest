@@ -145,7 +145,7 @@ async def set_var(client, message):
     if to_set in heroku_config:
         await message.reply_text(f"**Heroku Var Updation:**\n\n{check_var} has been updated successfully.")
     else:
-        return await message.reply_text(f"Added New Var with name {to_set}")   
+        await message.reply_text(f"Added New Var with name {to_set}")   
     heroku_config[to_set] = value
 
 @app.on_message(filters.command("update") & filters.user(SUDOERS))
