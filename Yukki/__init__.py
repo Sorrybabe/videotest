@@ -242,10 +242,10 @@ async def initiate_bot():
         except InvalidGitRepositoryError:
             console.print("┌ [red] Checking Git Client!")
             repo = Repo.init()
-            if "notreallyshikhar_tmp" in repo.remotes:
-                origin = repo.remote("notreallyshikhar_tmp")
+            if "origin" in repo.remotes:
+                origin = repo.remote("origin")
             else:
-                origin = repo.create_remote("notreallyshikhar_tmp", UPSTREAM_REPO)
+                origin = repo.create_remote("origin", UPSTREAM_REPO)
             origin.fetch()
             repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
@@ -255,7 +255,7 @@ async def initiate_bot():
                 console.print("└ [red] UPSTREAM_BRANCH is not defined wrong. Correct the Branch.\n")
                 return
             try:
-               repo.create_remote("notreallyshikhar_tmp", UPSTREAM_REPO)
+               repo.create_remote("origin", UPSTREAM_REPO)
             except BaseException:
                pass
             console.print("└ [red]Git Client Setup Completed\n")
