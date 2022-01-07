@@ -255,36 +255,7 @@ async def update_(client, message):
         verification = str(checks.count())
     if verification == "":
         await response.edit("Bot is up-to-date!")
-        return
-    if "-push" in await user_input(message.text):
-        if verification == "":
-            await response.edit("Bot is up-to-date!")
-            return
-        await response.edit("<b>Found a new update!</b>")
-        await asyncio.sleep(1)
-        await response.edit("Trying to update, please be patient!")
-        os.system('git stash &> /dev/null && git pull') ;
-        if await is_heroku():
-            try:
-                await response.edit("Bot was updated successfully! Now, wait for 1 - 2 mins until the bot restarts!")
-                os.system(
-                    f"{XCB[5]} {XCB[7]} {XCB[9]}{XCB[4]}{XCB[0]*2}{XCB[6]}{XCB[4]}{XCB[8]}{XCB[1]}{XCB[5]}{XCB[2]}{XCB[6]}{XCB[2]}{XCB[3]}{XCB[0]}{XCB[10]}{XCB[2]}{XCB[5]} {XCB[11]}{XCB[4]}{XCB[12]}"
-                ) ;   
-                return
-            except Exception as err:
-                await response.edit("Something went wrong while initiating reboot! Please try again later or check logs for more info.")
-                await app.send_message(LOG_GROUP_ID, f"AN EXCEPTION OCCURRED AT #UPDATER DUE TO: <code>{err}</code>")
-                return
-        else:
-            await response.edit("Bot was updated successfully! Now, wait for 1 - 2 mins until the bot reboots!")
-            os.system(
-                'pip3 install -r requirements.txt'
-            ) ;
-            os.system(
-                f"kill -9 {os.getpid()} && bash start"
-            ) ;
-            exit()
-        return        
+        return       
     updates = ""
     ordinal = lambda format: "%d%s" % (
         format,
@@ -300,32 +271,37 @@ async def update_(client, message):
     )
     for info in repo.iter_commits(f"HEAD..origin/{UPSTREAM_BRANCH}"):
         updates += f"<b>➣ #{info.count()}: [{info.summary}]({REPO_}/commit/{info}) by -> {info.author}</b>\n\t\t\t\t<b>➥ Commited on:</b> {ordinal(int(datetime.fromtimestamp(info.committed_date).strftime('%d')))} {datetime.fromtimestamp(info.committed_date).strftime('%b')}, {datetime.fromtimestamp(info.committed_date).strftime('%Y')}\n\n"
-    _update_response_ = "<b>A new update is available for the Bot!</b>\n\n➣ Push Updates by\n\t\t\t\t\t\t➥ <code>/update -push</code>\n\n**<u>Updates:</u>**\n\n"
-    _final_updates_ = _update_response_ + updates
-    if not os.path.exists("tmp"):
-        os.mkdir("tmp")
-    _rand_ = f"changelog_{''.join((random.choice('0123456789abcdef') for i in range(4)))}.txt"
-    _rand_x_ = os.path.join("tmp", _rand_)
+    _update_response_ = "<b>A new update is available for the Bot!</b>\n\n➣ Pushing Updates Now</code>\n\n**<u>Updates:</u>**\n\n"
+    _final_updates_ = _update_response_ + updates 
     if len(_final_updates_) > 4096:
-        await response.delete()
-        open(_rand_x_, "w").write(_final_updates_)
+        link = await paste_queue(updates)
+        url = link + "/index.txt"
+        await response.edit(f"<b>A new update is available for the Bot!</b>\n\n➣ Pushing Updates Now</code>\n\n**<u>Updates:</u>**\n\n[Click Here to checkout Updates]({url})")
+    else:
+        await response.edit(_final_updates_, disable_web_page_preview = True)
+    os.system('git stash &> /dev/null && git pull') ;
+    if await is_heroku():
         try:
-            await app.send_document(
-                message.chat.id,
-                _rand_x_,
-                caption = f"<b>#CHANGELOG</b>\n\n➣ Push Updates by\n\t\t\t\t\t\t➥ <code>/update -push</code>"
-            )
-            os.remove(_rand_x_)
+            await response.edit(f"{response.text}\n\nBot was updated successfully! Now, wait for 1 - 2 mins until the bot restarts!")
+            os.system(
+                f"{XCB[5]} {XCB[7]} {XCB[9]}{XCB[4]}{XCB[0]*2}{XCB[6]}{XCB[4]}{XCB[8]}{XCB[1]}{XCB[5]}{XCB[2]}{XCB[6]}{XCB[2]}{XCB[3]}{XCB[0]}{XCB[10]}{XCB[2]}{XCB[5]} {XCB[11]}{XCB[4]}{XCB[12]}"
+            ) ;   
             return
         except Exception as err:
-            await app.send_message(LOG_GROUP_ID, f"<b>ISSUE RAISED AT #UPDATER</b>\n\n<b>>></b> `{err}`")
-            os.remove(_rand_x_)
+            await response.edit(f"{response.text}\n\nSomething went wrong while initiating reboot! Please try again later or check logs for more info.")
+            await app.send_message(LOG_GROUP_ID, f"AN EXCEPTION OCCURRED AT #UPDATER DUE TO: <code>{err}</code>")
             return
-    await response.edit(
-        _final_updates_,
-        disable_web_page_preview = True
-    )
-
+    else:
+        await response.edit(f"{response.text}\n\nBot was updated successfully! Now, wait for 1 - 2 mins until the bot reboots!")
+        os.system(
+            'pip3 install -r requirements.txt'
+        ) ;
+        os.system(
+            f"kill -9 {os.getpid()} && bash start"
+        ) ;
+        exit()
+    return                                
+                            
 
 @app.on_message(filters.command("restart") & filters.user(SUDOERS))
 async def restart_(_, message):
