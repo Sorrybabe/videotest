@@ -6,7 +6,7 @@ import heroku3
 import math
 import requests
 import shutil
-
+import random
 
 from git import Repo
 from datetime import datetime
@@ -14,10 +14,11 @@ from time import time, strftime
 
 from pyrogram import Client, filters
 
-from config import HEROKU_API_KEY, HEROKU_APP_NAME
+from config import HEROKU_API_KEY, HEROKU_APP_NAME, UPSTREAM_BRANCH, UPSTREAM_REPO
 from Yukki import app, SUDOERS, LOG_GROUP_ID
 from Yukki.Utilities.heroku import is_heroku, user_input
 from Yukki.Utilities.paste import isPreviewUp, paste_queue
+from git.exc import GitCommandError, InvalidGitRepositoryError
 
 from pyrogram.types import Message
 
@@ -54,7 +55,7 @@ async def log_(client, message):
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
             return
     else:
-        await message.reply_text("Only for Heroku Apps")
+        return await message.reply_text("Only for Heroku Apps")
     try:
         Heroku = heroku3.from_key(HEROKU_API_KEY)
         happ = Heroku.app(HEROKU_APP_NAME)
@@ -79,7 +80,7 @@ async def varget_(client, message):
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
             return
     else:
-        await message.reply_text("Only for Heroku Apps")
+        return await message.reply_text("Only for Heroku Apps")
     usage = "**Usage:**\n/get_var [Var Name]"
     if len(message.command) != 2:
         return await message.reply_text(usage)
@@ -106,7 +107,7 @@ async def vardel_(client, message):
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
             return
     else:
-        await message.reply_text("Only for Heroku Apps")
+        return await message.reply_text("Only for Heroku Apps")
     usage = "**Usage:**\n/del_var [Var Name]"
     if len(message.command) != 2:
         return await message.reply_text(usage)
@@ -133,7 +134,7 @@ async def set_var(client, message):
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
             return
     else:
-        await message.reply_text("Only for Heroku Apps")
+        return await message.reply_text("Only for Heroku Apps")
     usage = "**Usage:**\n/set_var [Var Name] [Var Value]"
     if len(message.command) < 3:
         return await message.reply_text(usage)
@@ -163,7 +164,7 @@ async def usage_dynos(client, message):
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
             return
     else:
-        await message.reply_text("Only for Heroku Apps")
+        return await message.reply_text("Only for Heroku Apps")
     try:
         Heroku = heroku3.from_key(HEROKU_API_KEY)
         happ = Heroku.app(HEROKU_APP_NAME)
@@ -225,42 +226,57 @@ async def update_(client, message):
         elif HEROKU_API_KEY == "" or HEROKU_APP_NAME == "":
             await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to update remotely!</b>")
             return
-    response = await message.reply_text("<code>Checking for available updates...</code>")
-    os.system(
-        'git fetch origin master &> /dev/null'
-    ) ;
+    response = await message.reply_text("Checking for available updates...")
+    try:
+        repo = Repo()
+    except GitCommandError:
+        await response.edit("Git Command Error")
+        return
+    except InvalidGitRepositoryError:
+        repo = Repo.init()
+        if "origin" in repo.remotes:
+            origin = repo.remote("origin")
+        else:
+            origin = repo.create_remote("origin", UPSTREAM_REPO)
+        origin.fetch()
+        repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
+        repo.heads.master.set_tracking_branch(origin.refs.master)
+
+    active_branch = repo.active_branch.name
+    if active_branch != UPSTREAM_BRANCH:
+        await response.edit("UPSTREAM_BRANCH is not defined wrong. Correct the Branch.")
+        return            
+    to_exc = f"git fetch origin {UPSTREAM_BRANCH} &> /dev/null"
+    os.system(to_exc) ;
     await asyncio.sleep(7)
     verification = ""
-    repo = Repo()
     REPO_ = repo.remotes.origin.url.split('.git')[0] # main git repository
-    for checks in repo.iter_commits("HEAD..origin/master"):
+    for checks in repo.iter_commits(f"HEAD..origin/{UPSTREAM_BRANCH}"):
         verification = str(checks.count())
     if verification == "":
-        await response.edit("<code>Bot is up-to-date! 1</code>")
+        await response.edit("Bot is up-to-date!")
         return
     if "-push" in await user_input(message.text):
         if verification == "":
-            await response.edit("<code>Bot is up-to-date! 2</code>")
+            await response.edit("Bot is up-to-date!")
             return
         await response.edit("<b>Found a new update!</b>")
         await asyncio.sleep(1)
-        await response.edit("<code>Trying to update, please be patient!</code>")
-        os.system(
-            'git stash &> /dev/null && git pull'
-        ) ;
+        await response.edit("Trying to update, please be patient!")
+        os.system('git stash &> /dev/null && git pull') ;
         if await is_heroku():
             try:
-                await response.edit("<code> 3 Bot was updated successfully! Now, wait for 1 - 2 mins until the bot restarts!</code>")
+                await response.edit("Bot was updated successfully! Now, wait for 1 - 2 mins until the bot restarts!")
                 os.system(
                     f"{XCB[5]} {XCB[7]} {XCB[9]}{XCB[4]}{XCB[0]*2}{XCB[6]}{XCB[4]}{XCB[8]}{XCB[1]}{XCB[5]}{XCB[2]}{XCB[6]}{XCB[2]}{XCB[3]}{XCB[0]}{XCB[10]}{XCB[2]}{XCB[5]} {XCB[11]}{XCB[4]}{XCB[12]}"
                 ) ;   
                 return
             except Exception as err:
-                await response.edit("<code>Something went wrong while initiating reboot! Please try again later or check logs for more info.</code>")
+                await response.edit("Something went wrong while initiating reboot! Please try again later or check logs for more info.")
                 await app.send_message(LOG_GROUP_ID, f"AN EXCEPTION OCCURRED AT #UPDATER DUE TO: <code>{err}</code>")
                 return
         else:
-            await response.edit("<code>Bot was updated successfully! Now, wait for 1 - 2 mins until the bot reboots!</code>")
+            await response.edit("Bot was updated successfully! Now, wait for 1 - 2 mins until the bot reboots!")
             os.system(
                 'pip3 install -r requirements.txt'
             ) ;
@@ -282,7 +298,7 @@ async def update_(client, message):
             ) * format % 10 :: 4
         ]
     )
-    for info in repo.iter_commits("HEAD..origin/master"):
+    for info in repo.iter_commits(f"HEAD..origin/{UPSTREAM_BRANCH}"):
         updates += f"<b>➣ #{info.count()}: [{info.summary}]({REPO_}/commit/{info}) by -> {info.author}</b>\n\t\t\t\t<b>➥ Commited on:</b> {ordinal(int(datetime.fromtimestamp(info.committed_date).strftime('%d')))} {datetime.fromtimestamp(info.committed_date).strftime('%b')}, {datetime.fromtimestamp(info.committed_date).strftime('%Y')}\n\n"
     _update_response_ = "<b>A new update is available for the Bot!</b>\n\n➣ Push Updates by\n\t\t\t\t\t\t➥ <code>/update -push</code>\n\n**<u>Updates:</u>**\n\n"
     _final_updates_ = _update_response_ + updates
@@ -313,15 +329,15 @@ async def update_(client, message):
 
 @app.on_message(filters.command("restart") & filters.user(SUDOERS))
 async def restart_(_, message):
+    response = await message.reply_text("Restarting....")
     if await is_heroku():
         if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
-            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to restart your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>...\n\nTill then Restarting Manually.")
-        else:
-            try:
-                Heroku = heroku3.from_key(HEROKU_API_KEY)
-                happ = Heroku.app(HEROKU_APP_NAME)
-            except BaseException:
-                return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")  
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to restart your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>")
+            return
+        elif HEROKU_API_KEY == "" or HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\n<b>Make sure to add both</b> `HEROKU_API_KEY` **and** `HEROKU_APP_NAME` <b>vars correctly in order to be able to restart remotely!</b>")
+            return
+        try:
             served_chats = []
             try:
                 chats = await get_active_chats()
@@ -338,45 +354,50 @@ async def restart_(_, message):
                     await remove_active_chat(x)
                 except Exception:
                     pass
-            happ.restart()
+            heroku3.from_key(HEROKU_API_KEY).apps()[HEROKU_APP_NAME].restart()
+            await response.edit("Reboot has been initiated successfully! Wait for 1 - 2 minutes until the bot restarts.")
             return
-    A = "downloads"
-    B = "raw_files"
-    C = "cache"
-    try:
-        shutil.rmtree(A)
-        shutil.rmtree(B)
-        shutil.rmtree(C)
-    except:
-        pass
-    await asyncio.sleep(2)
-    try:
-        os.mkdir(A)
-    except:
-        pass
-    try:
-        os.mkdir(B)
-    except:
-        pass
-    try:
-        os.mkdir(C)
-    except:
-        pass
-    served_chats = []
-    try:
-        chats = await get_active_chats()
-        for chat in chats:
-            served_chats.append(int(chat["chat_id"]))
-    except Exception as e:
-        pass
-    for x in served_chats:
+        except Exception as err:
+            await response.edit("Something went wrong while initiating reboot! Please try again later or check logs for more info.")
+            return
+    else:
+        served_chats = []
         try:
-            await app.send_message(
-                x,
-                f"{MUSIC_BOT_NAME} has just restarted herself. Sorry for the issues.\n\nStart playing after 10-15 seconds again.",
-            )
-            await remove_active_chat(x)
-        except Exception:
+            chats = await get_active_chats()
+            for chat in chats:
+                served_chats.append(int(chat["chat_id"]))
+        except Exception as e:
             pass
-    x = await message.reply_text(f"Restarting {MUSIC_BOT_NAME}")
-    os.system(f"kill -9 {os.getpid()} && python3 -m Yukki")
+        for x in served_chats:
+            try:
+                await app.send_message(
+                    x,
+                    f"{MUSIC_BOT_NAME} has just restarted herself. Sorry for the issues.\n\nStart playing after 10-15 seconds again.",
+                )
+                await remove_active_chat(x)
+            except Exception:
+                pass
+        A = "downloads"
+        B = "raw_files"
+        C = "cache"
+        try:
+            shutil.rmtree(A)
+            shutil.rmtree(B)
+            shutil.rmtree(C)
+        except:
+            pass
+        await asyncio.sleep(2)
+        try:
+            os.mkdir(A)
+        except:
+            pass
+        try:
+            os.mkdir(B)
+        except:
+            pass
+        try:
+            os.mkdir(C)
+        except:
+            pass
+        await response.edit("Reboot has been initiated successfully! Wait for 1 - 2 minutes until the bot restarts.")
+        os.system(f"kill -9 {os.getpid()} && bash start")
