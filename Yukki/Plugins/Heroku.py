@@ -241,6 +241,7 @@ async def update_(client, message):
         origin.fetch()
         repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
         repo.heads.master.set_tracking_branch(origin.refs.master)
+        repo.heads.master.checkout(True)
     active_branch = repo.active_branch.name
     if active_branch != UPSTREAM_BRANCH:
         await response.edit("UPSTREAM_BRANCH is not defined wrong. Correct the Branch.")
@@ -253,8 +254,7 @@ async def update_(client, message):
     for checks in repo.iter_commits(f"HEAD..origin/{UPSTREAM_BRANCH}"):
         verification = str(checks.count())
     if verification == "":
-        await response.edit("Bot is up-to-date!")
-        return       
+        await response.edit("Bot is up-to-date!")       
     updates = ""
     ordinal = lambda format: "%d%s" % (
         format,
