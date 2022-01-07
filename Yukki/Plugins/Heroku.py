@@ -1,11 +1,11 @@
 import os
 
-import random
 import asyncio
 import urllib3
 import heroku3
 import math
 import requests
+import shutil
 
 
 from git import Repo
@@ -309,3 +309,74 @@ async def update_(client, message):
         _final_updates_,
         disable_web_page_preview = True
     )
+
+
+@app.on_message(filters.command("restart") & filters.user(SUDOERS))
+async def restart_(_, message):
+    if await is_heroku():
+        if HEROKU_API_KEY == "" and HEROKU_APP_NAME == "":
+            await message.reply_text("<b>HEROKU APP DETECTED!</b>\n\nIn order to restart your app, you need to set up the `HEROKU_API_KEY` and `HEROKU_APP_NAME` vars respectively!</code>...\n\nTill then Restarting Manually.")
+        else:
+            try:
+                Heroku = heroku3.from_key(HEROKU_API_KEY)
+                happ = Heroku.app(HEROKU_APP_NAME)
+            except BaseException:
+                return await message.reply_text(" Please make sure your Heroku API Key, Your App name are configured correctly in the heroku")  
+            served_chats = []
+            try:
+                chats = await get_active_chats()
+                for chat in chats:
+                    served_chats.append(int(chat["chat_id"]))
+            except Exception as e:
+                pass
+            for x in served_chats:
+                try:
+                    await app.send_message(
+                        x,
+                        f"{MUSIC_BOT_NAME} has just restarted herself. Sorry for the issues.\n\nStart playing after 10-15 seconds again.",
+                    )
+                    await remove_active_chat(x)
+                except Exception:
+                    pass
+            happ.restart()
+            return
+    A = "downloads"
+    B = "raw_files"
+    C = "cache"
+    try:
+        shutil.rmtree(A)
+        shutil.rmtree(B)
+        shutil.rmtree(C)
+    except:
+        pass
+    await asyncio.sleep(2)
+    try:
+        os.mkdir(A)
+    except:
+        pass
+    try:
+        os.mkdir(B)
+    except:
+        pass
+    try:
+        os.mkdir(C)
+    except:
+        pass
+    served_chats = []
+    try:
+        chats = await get_active_chats()
+        for chat in chats:
+            served_chats.append(int(chat["chat_id"]))
+    except Exception as e:
+        pass
+    for x in served_chats:
+        try:
+            await app.send_message(
+                x,
+                f"{MUSIC_BOT_NAME} has just restarted herself. Sorry for the issues.\n\nStart playing after 10-15 seconds again.",
+            )
+            await remove_active_chat(x)
+        except Exception:
+            pass
+    x = await message.reply_text(f"Restarting {MUSIC_BOT_NAME}")
+    os.system(f"kill -9 {os.getpid()} && python3 -m Yukki")

@@ -162,41 +162,6 @@ async def sudoers_list(_, message: Message):
         await message.reply_text(text)
 
 
-# Restart Yukki
-
-
-@app.on_message(filters.command("restart") & filters.user(SUDOERS))
-async def theme_func(_, message):
-    A = "downloads"
-    B = "raw_files"
-    C = "cache"
-    shutil.rmtree(A)
-    shutil.rmtree(B)
-    shutil.rmtree(C)
-    await asyncio.sleep(2)
-    os.mkdir(A)
-    os.mkdir(B)
-    os.mkdir(C)
-    served_chats = []
-    try:
-        chats = await get_active_chats()
-        for chat in chats:
-            served_chats.append(int(chat["chat_id"]))
-    except Exception as e:
-        pass
-    for x in served_chats:
-        try:
-            await app.send_message(
-                x,
-                f"{MUSIC_BOT_NAME} has just restarted herself. Sorry for the issues.\n\nStart playing after 10-15 seconds again.",
-            )
-            await remove_active_chat(x)
-        except Exception:
-            pass
-    x = await message.reply_text(f"Restarting {MUSIC_BOT_NAME}")
-    os.system(f"kill -9 {os.getpid()} && python3 -m Yukki")
-
-
 ### Video Limit
 
 @app.on_message(filters.command(["set_video_limit", f"set_video_limit@{BOT_USERNAME}"]) & filters.user(SUDOERS))
