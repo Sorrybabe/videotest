@@ -14,7 +14,6 @@
     <img src="https://img.shields.io/github/issues/notreallyshikhar/YukkiMusicBot?style=for-the-badge" alt="Issues">
 </p>
 
-HAAN VAI KISKI MUMMY KI
 
 
 <h3 align="center">
