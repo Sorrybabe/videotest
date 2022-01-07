@@ -217,46 +217,28 @@ async def initiate_bot():
                 )
         SUDOERS = (SUDOERS + sudoers + OWNER_ID) if sudoers else SUDOERS
         console.print("└ [green]Loaded Sudo Users Successfully!\n")   
-        if os.path.exists(".git"):
-            pass
-        else:
-            try:
-                print("1")
-                repo = Repo()
-                print("2")
-            except GitCommandError:
-                console.print("┌ [red]Checking Git Client!")
-                console.print("└ [red]Git Command Error\n")
-                return
-            except InvalidGitRepositoryError:
-                print("3")
-                console.print("┌ [red] Checking Git Client!")
-                repo = Repo.init()
-                print("4")
-                if "origin" in repo.remotes:
-                    print("5")
-                    origin = repo.remote("origin")
-                else:
-                    print("6")
-                    origin = repo.create_remote("origin", UPSTREAM_REPO)
-                print("7")
-                origin.fetch()
-                print("8")
-                repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
-                print("9")
-                repo.heads.master.set_tracking_branch(origin.refs.master)
-                print("10")
-                repo.heads.master.checkout(True)
-                print("11")
-                active_branch = repo.active_branch.name
-                if active_branch != UPSTREAM_BRANCH:
-                    console.print("└ [red]UPSTREAM_BRANCH is not defined wrong. Correct the Branch.\n")
-                    return
-                try:
-                   repo.create_remote("origin", UPSTREAM_REPO)
-                except BaseException:
-                   pass
-                console.print("└ [red]Git Client Setup Completed\n")
+        try:
+            repo = Repo()
+        except GitCommandError:
+            console.print("┌ [red]Checking Git Client!")
+            console.print("└ [red]Git Command Error\n")
+            return
+        except InvalidGitRepositoryError:
+            console.print("┌ [red] Checking Git Client!")
+            repo = Repo.init()
+            if "origin" in repo.remotes:
+                origin = repo.remote("origin")
+            else:
+                origin = repo.create_remote("origin", UPSTREAM_REPO)
+            origin.fetch()
+            repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
+            repo.heads.master.set_tracking_branch(origin.refs.master)
+            repo.heads.master.checkout(True)
+            console.print("└ [red]Git Client Setup Completed\n")
+                
+                
+                
+                
             
 
 
