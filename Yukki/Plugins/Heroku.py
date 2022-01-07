@@ -18,7 +18,7 @@ from config import HEROKU_API_KEY, HEROKU_APP_NAME, UPSTREAM_BRANCH, UPSTREAM_RE
 from Yukki import app, SUDOERS, LOG_GROUP_ID
 from Yukki.Utilities.heroku import is_heroku, user_input
 from Yukki.Utilities.paste import isPreviewUp, paste_queue
-from git.exc import GitCommandError, InvalidGitRepositoryError
+
 
 from pyrogram.types import Message
 
@@ -233,15 +233,7 @@ async def update_(client, message):
         await response.edit("Git Command Error")
         return
     except InvalidGitRepositoryError:
-        repo = Repo.init()
-        if "origin" in repo.remotes:
-            origin = repo.remote("origin")
-        else:
-            origin = repo.create_remote("origin", UPSTREAM_REPO)
-        origin.fetch()
-        repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
-        repo.heads.master.set_tracking_branch(origin.refs.master)
-        repo.heads.master.checkout(True)
+        return await response.edit("Invalid Git Repsitory")
     active_branch = repo.active_branch.name
     if active_branch != UPSTREAM_BRANCH:
         await response.edit("UPSTREAM_BRANCH is not defined wrong. Correct the Branch.")
@@ -254,7 +246,8 @@ async def update_(client, message):
     for checks in repo.iter_commits(f"HEAD..origin/{UPSTREAM_BRANCH}"):
         verification = str(checks.count())
     if verification == "":
-        await response.edit("Bot is up-to-date!")       
+        await response.edit("Bot is up-to-date!")
+        return       
     updates = ""
     ordinal = lambda format: "%d%s" % (
         format,
