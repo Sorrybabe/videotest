@@ -241,7 +241,6 @@ async def update_(client, message):
         origin.fetch()
         repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
         repo.heads.master.set_tracking_branch(origin.refs.master)
-
     active_branch = repo.active_branch.name
     if active_branch != UPSTREAM_BRANCH:
         await response.edit("UPSTREAM_BRANCH is not defined wrong. Correct the Branch.")
@@ -276,23 +275,23 @@ async def update_(client, message):
     if len(_final_updates_) > 4096:
         link = await paste_queue(updates)
         url = link + "/index.txt"
-        await response.edit(f"<b>A new update is available for the Bot!</b>\n\n➣ Pushing Updates Now</code>\n\n**<u>Updates:</u>**\n\n[Click Here to checkout Updates]({url})")
+        nrs = await response.edit(f"<b>A new update is available for the Bot!</b>\n\n➣ Pushing Updates Now</code>\n\n**<u>Updates:</u>**\n\n[Click Here to checkout Updates]({url})")
     else:
-        await response.edit(_final_updates_, disable_web_page_preview = True)
+        nrs = await response.edit(_final_updates_, disable_web_page_preview = True)
     os.system('git stash &> /dev/null && git pull') ;
     if await is_heroku():
         try:
-            await response.edit(f"{response.text}\n\nBot was updated successfully on Heroku! Now, wait for 2 - 3 mins until the bot restarts!")
+            await response.edit(f"{nrs.text}\n\nBot was updated successfully on Heroku! Now, wait for 2 - 3 mins until the bot restarts!")
             os.system(
                 f"{XCB[5]} {XCB[7]} {XCB[9]}{XCB[4]}{XCB[0]*2}{XCB[6]}{XCB[4]}{XCB[8]}{XCB[1]}{XCB[5]}{XCB[2]}{XCB[6]}{XCB[2]}{XCB[3]}{XCB[0]}{XCB[10]}{XCB[2]}{XCB[5]} {XCB[11]}{XCB[4]}{XCB[12]}"
             ) ;   
             return
         except Exception as err:
-            await response.edit(f"{response.text}\n\nSomething went wrong while initiating reboot! Please try again later or check logs for more info.")
+            await response.edit(f"{nrs.text}\n\nSomething went wrong while initiating reboot! Please try again later or check logs for more info.")
             await app.send_message(LOG_GROUP_ID, f"AN EXCEPTION OCCURRED AT #UPDATER DUE TO: <code>{err}</code>")
             return
     else:
-        await response.edit(f"{response.text}\n\nBot was updated successfully! Now, wait for 1 - 2 mins until the bot reboots!")
+        await response.edit(f"{nrs.text}\n\nBot was updated successfully! Now, wait for 1 - 2 mins until the bot reboots!")
         os.system(
             'pip3 install -r requirements.txt'
         ) ;
