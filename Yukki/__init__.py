@@ -233,7 +233,6 @@ async def initiate_bot():
             origin.fetch()
             repo.create_head(UPSTREAM_BRANCH, origin.refs.master)
             repo.heads.master.set_tracking_branch(origin.refs.master)
-            repo.heads.master.checkout(True)
             console.print("└ [red]Git Client Setup Completed\n")
                 
                 
